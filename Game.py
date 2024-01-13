@@ -1,27 +1,50 @@
 import pygame
+import globals
 from typing import List
 import Player
 import Map
+import random
+from Supply import Supply
 
-    
+
 class Game:
     def __init__(self) -> None:
         self.WIDTH = 806
         self.HEIGHT = self.WIDTH
         self._init()
         self.map:Map.Map = Map.Map(self.WORLD)
-        self.players: List[Player.Player] = [
-            Player.Player(self.map, [0, 0], (0,125,125))
-        ]
+        self.players: List[Player.Player] = [Player.Player(self.map, [0, 0], (0,125,125))]
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = (255,255,255)
+        self.last_supplies_drop = pygame.time.get_ticks()
+        self.supplies_cooldown = 3000
 
     def _init(self):
         pygame.init()
         pygame.display.set_caption('projekt 2')
         self.WORLD = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
+    def _create_supplies(self):
+        timer = pygame.time.get_ticks()
+        if timer - self.last_supplies_drop > self.supplies_cooldown:
+            empty_cells = self.map.empty_cells
+            if len(empty_cells) > 0:
+                position = self.random_spot_for_supply_in_game_units(empty_cells)
+                globals.supplies.append(Supply(True, False, False, False, position, self.WORLD))
+                position = self.random_spot_for_supply_in_game_units(empty_cells)
+                globals.supplies.append(Supply(False, True, False, False, position, self.WORLD))
+                position = self.random_spot_for_supply_in_game_units(empty_cells)
+                globals.supplies.append(Supply(False, False, True, False, position, self.WORLD))
+                position = self.random_spot_for_supply_in_game_units(empty_cells)
+                globals.supplies.append(Supply(False, False, False, True, position, self.WORLD))
+                self.last_supplies_drop = timer
+
+    def random_spot_for_supply_in_game_units(self, empty_cells):
+        random_spot = random.choice(empty_cells)
+        position = pygame.Vector2((random_spot[1] * self.map.cellSize)+self.map.cellSize/2, (random_spot[0] * self.map.cellSize)+self.map.cellSize/2)
+        empty_cells.remove(random_spot)
+        return position
 
     def _update(self) -> None:
         deltaTime = self.CLOCK.tick(30)
@@ -34,6 +57,8 @@ class Game:
         self.map.draw()
         for player in self.players:
             player.draw()
+        for supply in globals.supplies:
+            supply.draw()
         pygame.display.update()
 
     def _pollEvents(self) -> None:
@@ -45,6 +70,7 @@ class Game:
     def mainLoop(self) -> None:
         while self.running:
             self._pollEvents()
+            self._create_supplies()
             self._update()
             self._draw()
         

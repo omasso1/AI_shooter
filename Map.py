@@ -3,6 +3,7 @@ from typing import List
 import csv
 
 class Map:
+
     class Node:
         def __init__(self, x:int, y:int, value:int, size:float, World:pygame.surface) -> None:
             self.value = value
@@ -18,11 +19,11 @@ class Map:
 
     def __init__(self, World:pygame.Surface) -> None:
         self.WORLD:pygame.Surface = World
-        
         #size in cells, to include padding
         self.mapSize:int = 26
         self.cellSize:float = self.WORLD.get_width() / self.mapSize
         self.grid:List[List[Map.Node]] = []
+        self.empty_cells = []
         self._initGrid()
         
     def _initGrid(self) -> None:
@@ -37,7 +38,9 @@ class Map:
         for y in range(self.mapSize):
             self.grid.append([])
             for x in range(self.mapSize):
-                self.grid[y].append(Map.Node(x, y,tempArray[y][x], self.cellSize, self.WORLD))
+                if tempArray[y][x] != "1":
+                    self.empty_cells.append([y, x])
+                self.grid[y].append(Map.Node(x, y, tempArray[y][x], self.cellSize, self.WORLD))
 
         #for y in range(self.mapSize):
             #for x in range(self.mapSize):
@@ -49,4 +52,5 @@ class Map:
         for row in self.grid:
             for cell in row:
                 cell.draw()
+
         

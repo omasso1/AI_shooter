@@ -1,23 +1,23 @@
-import Game
 import Map
-import math
 import pygame
-import random
-import time
+import globals
+
 
 class Player:
     def __init__(self, map:Map.Map, position, color) -> None:
         self.map:Map.Map = map
-        self.cellSize = map.cellSize
         self.Position_in_grid = position
         self.Position_in_game = pygame.Vector2(
-            (self.Position_in_grid[1] * self.cellSize) + self.cellSize/2,
-            (self.Position_in_grid[0] * self.cellSize) + self.cellSize / 2
+            (self.Position_in_grid[1] * self.map.cellSize) + self.map.cellSize/2,
+            (self.Position_in_grid[0] * self.map.cellSize) + self.map.cellSize / 2
         )
-
         self.walk_route = [
-            [self.Position_in_game.x,self.Position_in_game.y],[150,100],[300,500],[700,300],[200,500]
+            [self.Position_in_game.x,self.Position_in_game.y],[150,100],[300,500],[700,300],[200,500], [50,75],[600,255],[800,800]
         ]
+        self.health = 100
+        self.armor = 0
+        self.primary_ammo = 20
+        self.secondary_ammo = 0
         self.radius = 10
         self.speed = 4
         self.min_speed = 1
@@ -33,8 +33,27 @@ class Player:
             pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
     def update(self, deltaTime) -> None:
+        self.collect_supply()
         self.move(deltaTime)
+
+    def shoot_primary(self) -> None:
         pass
+
+    def shoot_secondary(self) -> None:
+        pass
+
+    def collect_supply(self):
+        for supply in globals.supplies:
+            if self.Position_in_game.distance_to(supply.position) <= self.radius + supply.radius:
+                if supply.is_primary_ammo:
+                    self.primary_ammo += supply.value
+                elif supply.is_secondary_ammo:
+                    self.secondary_ammo += supply.value
+                elif supply.is_health:
+                    self.health += supply.value
+                elif supply.is_armor:
+                    self.armor += supply.value
+                globals.supplies.remove(supply)
 
     def move(self,deltaTime):
         first_last_point_number = self.last_points[0]
