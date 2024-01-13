@@ -15,7 +15,6 @@ class Map:
             
         def draw(self) -> None:
             pygame.draw.rect(self.WORLD, self.color, pygame.Rect(self.x * self.size, self.y * self.size, self.size, self.size))
-        
 
     def __init__(self, World:pygame.Surface) -> None:
         self.WORLD:pygame.Surface = World
@@ -38,13 +37,13 @@ class Map:
         for y in range(self.mapSize):
             self.grid.append([])
             for x in range(self.mapSize):
-                self.grid[y].append(Map.Node(x, y,tempArray[y][x], self.cellSize, self.WORLD))       
+                self.grid[y].append(Map.Node(x, y,tempArray[y][x], self.cellSize, self.WORLD))
 
-        for y in range(self.mapSize):
-            for x in range(self.mapSize):
-                self.grid[y][x].evaluate()
+        #for y in range(self.mapSize):
+            #for x in range(self.mapSize):
+                #self.grid[y][x].evaluate()
 
-        self.evaluate()
+        #self.evaluate()
 
     def draw(self) -> None:
         for row in self.grid:

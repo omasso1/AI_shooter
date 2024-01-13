@@ -6,12 +6,13 @@ import Map
     
 class Game:
     def __init__(self) -> None:
-        self.WIDTH = 800
+        self.WIDTH = 806
         self.HEIGHT = self.WIDTH
         self._init()
-        
-        self.players:List[Player.Player] = []
         self.map:Map.Map = Map.Map(self.WORLD)
+        self.players: List[Player.Player] = [
+            Player.Player(self.map, [0, 0], (0,125,125))
+        ]
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = (255,255,255)
@@ -23,7 +24,7 @@ class Game:
 
 
     def _update(self) -> None:
-        deltaTime = self.CLOCK.tick(60)
+        deltaTime = self.CLOCK.tick(30)
         for player in self.players:
             player.update(deltaTime)
 
