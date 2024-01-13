@@ -47,18 +47,23 @@ class Game:
         return position
 
     def _update(self) -> None:
-        deltaTime = self.CLOCK.tick(30)
+        deltaTime = self.CLOCK.tick(60)
         for player in self.players:
             player.update(deltaTime)
+
 
 
     def _draw(self) -> None:
         self.WORLD.fill(self.BACKGROUND)
         self.map.draw()
+        deltaTime = self.CLOCK.tick(60)
         for player in self.players:
             player.draw()
         for supply in globals.supplies:
             supply.draw()
+        for projectile in globals.projectiles:
+            projectile.draw(deltaTime)
+
         pygame.display.update()
 
     def _pollEvents(self) -> None:

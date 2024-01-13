@@ -1,7 +1,8 @@
 import Map
 import pygame
 import globals
-
+import math
+from Projectile import Projectile
 
 class Player:
     def __init__(self, map:Map.Map, position, color) -> None:
@@ -17,7 +18,7 @@ class Player:
         self.health = 100
         self.armor = 0
         self.primary_ammo = 20
-        self.secondary_ammo = 0
+        self.secondary_ammo = 4
         self.radius = 10
         self.speed = 4
         self.min_speed = 1
@@ -26,6 +27,9 @@ class Player:
         self.last_points = [0,1]
         self.direction = pygame.Vector2(0, 0)
         self.is_walking = False
+        self.last_time_shoot = pygame.time.get_ticks()
+        self.shoot_primary_cooldown = 300
+        self.shoot_secondary_cooldown = 3000
 
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
@@ -33,14 +37,38 @@ class Player:
             pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
     def update(self, deltaTime) -> None:
+        self.shoot_secondary()
         self.collect_supply()
         self.move(deltaTime)
 
     def shoot_primary(self) -> None:
-        pass
+        timer = pygame.time.get_ticks()
+        #narazie zostawiam, ze strzelam tam gdzie idzie
+        if self.primary_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
+            angle = math.atan2(self.direction.y, self.direction.x)
+            globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle, True))
+            self.primary_ammo -= 1
+            self.last_time_shoot = timer
 
     def shoot_secondary(self) -> None:
-        pass
+        timer = pygame.time.get_ticks()
+        # narazie zostawiam, ze strzelam tam gdzie idzie
+        if self.secondary_ammo > 0 and timer - self.last_time_shoot > self.shoot_secondary_cooldown:
+            angle = math.atan2(self.direction.y, self.direction.x)
+            globals.projectiles.append(
+                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle, False))
+            self.secondary_ammo -= 1
+            self.last_time_shoot = timer
+
+    def check_if_hit(self):
+        for projectile in globals.projectiles:
+            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius:
+                if projectile.is_primary_shoot:
+                    self.health -= 5
+                else:
+                    projectile.make_explosion()
+                    self.health -= 30
+                globals.projectiles.remove(projectile)
 
     def collect_supply(self):
         for supply in globals.supplies:
