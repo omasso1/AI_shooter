@@ -12,7 +12,7 @@ class Projectile(pygame.sprite.Sprite):
         self.position = pygame.Vector2(x, y)
         self.radius = 4
         self.speed = 20
-        self.screen_width = 806
+        self.screen_width = globals.WIDTH
         self.color = (125, 125, 125)
         self.dx = math.cos(angle) * self.speed
         self.dy = math.sin(angle) * self.speed

@@ -9,13 +9,13 @@ from Supply import Supply
 
 class Game:
     def __init__(self) -> None:
-        self.WIDTH = 806
+        self.WIDTH = globals.WIDTH
         self.HEIGHT = self.WIDTH
         self._init()
         self.map:Map.Map = Map.Map(self.WORLD)
         globals.players.append(Player.Player(self.map, [1, 1], (0,125,125), 1,10))
         globals.players.append(Player.Player(self.map, [21, 21], (125,0,125),18,16))
-        globals.players.append(Player.Player(self.map, [22, 22], (125,125,0),20,21))
+        globals.players.append(Player.Player(self.map, [24, 22], (125,125,0),1,22))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = (255,255,255)

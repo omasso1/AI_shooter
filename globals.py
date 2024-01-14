@@ -8,4 +8,5 @@ projectiles: List[Projectile] = []
 max_fov = 90
 max_player = 3
 players: List[Player] = []
+WIDTH = 806
 

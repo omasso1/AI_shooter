@@ -65,7 +65,7 @@ class Player:
         fov_right = self.direction.rotate(self.FOV)
         player_in_fov = []
         for player in globals.players:
-            if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game):
+            if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and  not self.is_player_behind_wall(player):
                 player_in_fov.append(player)
 
         player_to_shoot = self.get_closer_player(player_in_fov)
@@ -74,6 +74,15 @@ class Player:
             angle = self.direction.angle_to(direction)
             self.direction = self.direction.rotate(angle)
             self.shoot_primary()
+
+    def is_player_behind_wall(self,player):
+        direction = (player.Position_in_game - self.Position_in_game).normalize()/2
+        position = self.Position_in_game + direction
+        while 0 <= position.x <= globals.WIDTH and 0 <= position.y <= globals.WIDTH:
+            color = pygame.Surface.get_at(self.map.WORLD,(int(position.x), int(position.y)))
+            if color == (255, 0, 0):
+                return True
+            position += direction
 
     def is_inside_view_cone(self,starting_point, fov_left, fov_right, point_to_test):
         vector_to_point = pygame.Vector2(point_to_test[0] - starting_point[0], point_to_test[1] - starting_point[1]).normalize()
@@ -109,9 +118,8 @@ class Player:
 
     def check_if_hit(self):
         for projectile in globals.projectiles:
-            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter!= self:
+            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter != self:
                 if projectile.is_primary_shoot:
-                    print(self.health)
                     self.health -= 5
                 else:
                     projectile.make_explosion()
