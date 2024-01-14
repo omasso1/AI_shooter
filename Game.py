@@ -13,7 +13,8 @@ class Game:
         self.HEIGHT = self.WIDTH
         self._init()
         self.map:Map.Map = Map.Map(self.WORLD)
-        self.players: List[Player.Player] = [Player.Player(self.map, [0, 0], (0,125,125))]
+        globals.players.append(Player.Player(self.map, [1, 1], (0,125,125), 1,10))
+        globals.players.append(Player.Player(self.map, [21, 21], (0,125,125),21,20))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = (255,255,255)
@@ -48,7 +49,7 @@ class Game:
 
     def _update(self) -> None:
         deltaTime = self.CLOCK.tick(60)
-        for player in self.players:
+        for player in globals.players:
             player.update(deltaTime)
 
 
@@ -57,7 +58,7 @@ class Game:
         self.WORLD.fill(self.BACKGROUND)
         self.map.draw()
         deltaTime = self.CLOCK.tick(60)
-        for player in self.players:
+        for player in globals.players:
             player.draw()
         for supply in globals.supplies:
             supply.draw()

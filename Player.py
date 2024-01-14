@@ -5,19 +5,18 @@ import math
 from Projectile import Projectile
 from typing import List
 from typing import Dict
-import queue
+
 
 class Player:
-    def __init__(self, map:Map.Map, position, color) -> None:
+    def __init__(self, map:Map.Map, position, color, celx,cely) -> None:
         self.map:Map.Map = map
         self.Position_in_grid = position
         self.Position_in_game = pygame.Vector2(
             (self.Position_in_grid[1] * self.map.cellSize) + self.map.cellSize / 2,
             (self.Position_in_grid[0] * self.map.cellSize) + self.map.cellSize / 2
         )
-        celx = 4
-        cely = 21
-        self.walk_route = self.A_Star(self.map.grid[0][1], self.map.grid[cely][celx])
+
+        self.walk_route = self.A_Star(self.map.grid[position[0]][position[1]], self.map.grid[cely][celx])
         print(self.map.grid[cely][celx].type)
         self.walk_route.insert(0, [self.Position_in_game.x, self.Position_in_game.y])
         print(self.walk_route)
@@ -36,6 +35,7 @@ class Player:
         self.last_time_shoot = pygame.time.get_ticks()
         self.shoot_primary_cooldown = 300
         self.shoot_secondary_cooldown = 3000
+        self.FOV = globals.max_fov/2
 
   
 
@@ -44,10 +44,32 @@ class Player:
         for i in self.walk_route:
             pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
+        #FOV debug
+        fov_straight = self.Position_in_game + self.direction *1000
+        fov_left = self.Position_in_game + self.direction.rotate(-self.FOV)*1000
+        fov_right = self.Position_in_game + self.direction.rotate(self.FOV)*1000
+
+        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_left.x, fov_left.y), 4)
+        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_right.x, fov_right.y), 4)
+        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
+
+        #pygame.draw.line(self.map.WORLD,(0,255,255), self.Position_in_game, (), 3)
+
     def update(self, deltaTime) -> None:
-        self.shoot_secondary()
+        self.is_any_player_in_fov()
         self.collect_supply()
         self.move(deltaTime)
+
+    def is_any_player_in_fov(self):
+        fov_left = self.direction.rotate(-self.FOV)
+        fov_right = self.direction.rotate(self.FOV)
+        for player in globals.players:
+            if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game):
+                self.shoot_primary()
+
+    def is_inside_view_cone(self,starting_point, fov_left, fov_right, point_to_test):
+        vector_to_point = pygame.Vector2(point_to_test[0] - starting_point[0], point_to_test[1] - starting_point[1]).normalize()
+        return fov_left.cross(vector_to_point) * fov_left.cross(fov_right) >= 0 and fov_right.cross(vector_to_point) * fov_right.cross(fov_left) >= 0
 
     def shoot_primary(self) -> None:
         timer = pygame.time.get_ticks()
@@ -97,10 +119,10 @@ class Player:
         if first_last_point_number < len(self.walk_route) and second_last_point_number < len(self.walk_route) and not self.is_walking:
             point_a = pygame.Vector2(self.walk_route[self.last_points[0]][0], self.walk_route[self.last_points[0]][1])
             point_b = pygame.Vector2(self.walk_route[self.last_points[1]][0], self.walk_route[self.last_points[1]][1])
-            self.direction = pygame.Vector2.normalize(point_b - point_a)
-            #self.speed = min(self.min_speed, self.direction.length())
-            self.velocity = self.speed * self.direction
-            self.is_walking = True
+            if (point_b - point_a).length() > 0:
+                self.direction = pygame.Vector2.normalize(point_b - point_a)
+                self.velocity = self.speed * self.direction
+                self.is_walking = True
 
         if self.is_walking:
             self.Position_in_game += self.velocity
