@@ -33,16 +33,20 @@ class Projectile(pygame.sprite.Sprite):
                 globals.projectiles.remove(self)
 
     def update(self, deltaTime:float):
-        if self.is_out_of_border(self.screen_width,self.screen_width) or self.explosion: # lub kiedy trafi w przeciwnika
+        if self.is_out_of_border(self.screen_width,self.screen_width): # lub kiedy trafi w przeciwnika
             self.make_explosion()
-            self.color = (255,255,0)
-            self.radius = 70
-            self.explosion_time = pygame.time.get_ticks()
-        self.position.x += self.dx * deltaTime / 50.0
-        self.position.y += self.dy * deltaTime / 50.0
+            if self.explosion:
+                self.color = (255,255,0)
+                self.radius = 70
+                self.explosion_time = pygame.time.get_ticks()
+            else:
+                globals.projectiles.remove(self)
+        else:
+            self.position.x += self.dx * deltaTime / 50.0
+            self.position.y += self.dy * deltaTime / 50.0
 
     def make_explosion(self):
-        self.explosion = True
+        self.explosion = True and not self.is_primary_shoot
     #def check_collide_with_obstacles(self, obstacles: List[Obstacles]):
     #    for obstacle in obstacles:
     #        if self.position.distance_to(obstacle.position) <= self.radius + obstacle.radius:
