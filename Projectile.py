@@ -5,8 +5,9 @@ from typing import List
 
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, screen, x, y,angle, is_primary):
+    def __init__(self, screen, x, y,angle,shooter, is_primary):
         pygame.sprite.Sprite.__init__(self)
+        self.shooter = shooter
         self.screen = screen
         self.position = pygame.Vector2(x, y)
         self.radius = 4

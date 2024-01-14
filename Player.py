@@ -49,56 +49,76 @@ class Player:
         fov_left = self.Position_in_game + self.direction.rotate(-self.FOV)*1000
         fov_right = self.Position_in_game + self.direction.rotate(self.FOV)*1000
 
-        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_left.x, fov_left.y), 4)
-        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_right.x, fov_right.y), 4)
-        pygame.draw.line(self.map.WORLD, (0,255,255), self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
+        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_left.x, fov_left.y), 4)
+        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_right.x, fov_right.y), 4)
+        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
 
-        #pygame.draw.line(self.map.WORLD,(0,255,255), self.Position_in_game, (), 3)
 
     def update(self, deltaTime) -> None:
         self.is_any_player_in_fov()
+        self.check_if_hit()
         self.collect_supply()
         self.move(deltaTime)
 
     def is_any_player_in_fov(self):
         fov_left = self.direction.rotate(-self.FOV)
         fov_right = self.direction.rotate(self.FOV)
+        player_in_fov = []
         for player in globals.players:
             if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game):
-                self.shoot_primary()
+                player_in_fov.append(player)
+
+        player_to_shoot = self.get_closer_player(player_in_fov)
+        if player_to_shoot is not None and not self.is_walking:
+            direction = (player_to_shoot.Position_in_game - self.Position_in_game)
+            angle = self.direction.angle_to(direction)
+            self.direction = self.direction.rotate(angle)
+            self.shoot_primary()
 
     def is_inside_view_cone(self,starting_point, fov_left, fov_right, point_to_test):
         vector_to_point = pygame.Vector2(point_to_test[0] - starting_point[0], point_to_test[1] - starting_point[1]).normalize()
         return fov_left.cross(vector_to_point) * fov_left.cross(fov_right) >= 0 and fov_right.cross(vector_to_point) * fov_right.cross(fov_left) >= 0
 
+    def get_closer_player(self, players):
+        closest_dist = 9999999
+        closest_player = None
+        for player in players:
+            dist = (player.Position_in_game - self.Position_in_game).length()
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_player = player
+        return closest_player
+
+
     def shoot_primary(self) -> None:
         timer = pygame.time.get_ticks()
-        #narazie zostawiam, ze strzelam tam gdzie idzie
         if self.primary_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
             angle = math.atan2(self.direction.y, self.direction.x)
-            globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle, True))
+            globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True))
             self.primary_ammo -= 1
             self.last_time_shoot = timer
 
     def shoot_secondary(self) -> None:
         timer = pygame.time.get_ticks()
-        # narazie zostawiam, ze strzelam tam gdzie idzie
         if self.secondary_ammo > 0 and timer - self.last_time_shoot > self.shoot_secondary_cooldown:
             angle = math.atan2(self.direction.y, self.direction.x)
             globals.projectiles.append(
-                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle, False))
+                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False))
             self.secondary_ammo -= 1
             self.last_time_shoot = timer
 
     def check_if_hit(self):
         for projectile in globals.projectiles:
-            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius:
+            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter!= self:
                 if projectile.is_primary_shoot:
+                    print(self.health)
                     self.health -= 5
                 else:
                     projectile.make_explosion()
                     self.health -= 30
                 globals.projectiles.remove(projectile)
+        if self.health <= 0:
+            globals.players.remove(self)
 
     def collect_supply(self):
         for supply in globals.supplies:

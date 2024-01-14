@@ -14,7 +14,8 @@ class Game:
         self._init()
         self.map:Map.Map = Map.Map(self.WORLD)
         globals.players.append(Player.Player(self.map, [1, 1], (0,125,125), 1,10))
-        globals.players.append(Player.Player(self.map, [21, 21], (0,125,125),21,20))
+        globals.players.append(Player.Player(self.map, [21, 21], (125,0,125),18,16))
+        globals.players.append(Player.Player(self.map, [22, 22], (125,125,0),20,21))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = (255,255,255)
@@ -52,6 +53,9 @@ class Game:
         for player in globals.players:
             player.update(deltaTime)
 
+    def _respawnPlayerIfNeeded(self):
+        if len(globals.players) < globals.max_player:
+            globals.players.append(Player.Player(self.map, [21, 21], (125, 0, 125), 18, 16))
 
 
     def _draw(self) -> None:
@@ -76,6 +80,7 @@ class Game:
     def mainLoop(self) -> None:
         while self.running:
             self._pollEvents()
+            self._respawnPlayerIfNeeded()
             self._create_supplies()
             self._update()
             self._draw()
