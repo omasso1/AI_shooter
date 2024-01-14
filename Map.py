@@ -65,25 +65,25 @@ class Map:
                 if self.grid[y][x].type == WALL:
                     continue
                 #top left
-                if y - 1 >= 0 and  x-1>=0 and self.grid[y-1][x-1].type != WALL:
+                if y - 1 >= 0 and  x-1>=0 and self.grid[y-1][x-1].type != WALL and self.grid[y-1][x].type != WALL and self.grid[y][x-1].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y-1][x-1], sqrt2_weight))
                 #top
                 if y - 1 >= 0 and self.grid[y-1][x].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y-1][x], single_weight))
                 #top right
-                if y - 1 >=0 and x+1 < self.mapSize and self.grid[y-1][x+1].type != WALL:
+                if y - 1 >=0 and x+1 < self.mapSize and self.grid[y-1][x+1].type != WALL and self.grid[y-1][x].type != WALL and self.grid[y][x+1].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y-1][x+1], sqrt2_weight))
                 #right
                 if x+1 < self.mapSize and self.grid[y][x+1].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y][x+1], single_weight))
                 #right bottom
-                if y + 1 < self.mapSize and x+1 < self.mapSize and self.grid[y+1][x+1].type != WALL:
+                if y + 1 < self.mapSize and x+1 < self.mapSize and self.grid[y+1][x+1].type != WALL and self.grid[y+1][x].type != WALL and self.grid[y][x+1].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y+1][x+1], sqrt2_weight))
                 #bottom
                 if y + 1 < self.mapSize and self.grid[y+1][x].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y+1][x], single_weight))
                 #bottom left
-                if y + 1 < self.mapSize and x-1 >=0 and self.grid[y + 1][x-1].type != WALL:
+                if y + 1 < self.mapSize and x-1 >=0 and self.grid[y + 1][x-1].type != WALL and self.grid[y+1][x].type != WALL and self.grid[y][x-1].type != WALL:
                     self.grid[y][x].neighbours.append((self.grid[y + 1][x-1], sqrt2_weight))
                 #left
                 if x-1>=0 and self.grid[y][x-1].type != WALL:
