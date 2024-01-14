@@ -3,18 +3,24 @@ import pygame
 import globals
 import math
 from Projectile import Projectile
+from typing import List
+from typing import Dict
+import queue
 
 class Player:
     def __init__(self, map:Map.Map, position, color) -> None:
         self.map:Map.Map = map
         self.Position_in_grid = position
         self.Position_in_game = pygame.Vector2(
-            (self.Position_in_grid[1] * self.map.cellSize) + self.map.cellSize/2,
+            (self.Position_in_grid[1] * self.map.cellSize) + self.map.cellSize / 2,
             (self.Position_in_grid[0] * self.map.cellSize) + self.map.cellSize / 2
         )
-        self.walk_route = [
-            [self.Position_in_game.x,self.Position_in_game.y],[150,100],[300,500],[700,300],[200,500], [50,75],[600,255],[800,800]
-        ]
+        celx = 4
+        cely = 21
+        self.walk_route = self.A_Star(self.map.grid[0][1], self.map.grid[cely][celx])
+        print(self.map.grid[cely][celx].type)
+        self.walk_route.insert(0, [self.Position_in_game.x, self.Position_in_game.y])
+        print(self.walk_route)
         self.health = 100
         self.armor = 0
         self.primary_ammo = 20
@@ -30,6 +36,8 @@ class Player:
         self.last_time_shoot = pygame.time.get_ticks()
         self.shoot_primary_cooldown = 300
         self.shoot_secondary_cooldown = 3000
+
+  
 
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
@@ -106,7 +114,71 @@ class Player:
                     self.last_points[0] += 1
                     self.last_points[1] += 1
 
+    def A_Star(self, start:Map.Node, goal:Map.Node):
+        def reconstruct_path(cameFrom:Dict[Map.Node, Map.Node], current:Map.Node):
+            total_path:List[List[float]] = [[current.worldX, current.worldY]]
+            while current in cameFrom:
+                current = cameFrom[current]
+                total_path.insert(0,[current.worldX, current.worldY])
+            #print(total_path)
+            return total_path  
+        
+        def init_dict() -> Dict[Map.Node, float]:
+            temp = {}
+            for row in self.map.grid:
+                for node in row:
+                    temp[node] = 10000000000.0
+            return temp
+        
+        def printOpenSet(openSet, fScore):
+            for item in openSet:
+                print(item.worldX, item.worldY, fScore[item])
 
+        h = lambda a,b:  math.sqrt((a.worldX - b.worldX) ** 2 + (a.worldY - b.worldY) ** 2)
+        openSet:List[Map.Node] = [start]
+
+        cameFrom:dict = {}
+        gScore:Dict[Map.Node, float] = init_dict()
+        gScore[start] = 0
+
+        fScore:Dict[Map.Node, float] = init_dict() 
+        fScore[start] = h(goal, start)
+        while len(openSet) > 0:
+            current = openSet[0]
+            if current is goal:
+                print("goal reached")
+                return reconstruct_path(cameFrom, current)
+
+            openSet.pop(0)
+            for tuple in current.neighbours:
+                neighbor = tuple[0]
+                weight = tuple[1]
+                if neighbor.type == Map.WALL:
+                    print("wall")
+                tentative_gScore = gScore[current] + weight
+                if tentative_gScore < gScore[neighbor]:
+                    cameFrom[neighbor] = current
+                    gScore[neighbor] = tentative_gScore
+                    fScore[neighbor] = tentative_gScore + h(goal, neighbor)
+                    if neighbor not in openSet:
+                        openSet.append(neighbor)
+
+                    #correct neighbor in place in queue
+                    neighborIndex = None
+                    for i, item in enumerate(openSet):
+                        if item is neighbor:
+                            neighborIndex = i
+                    if neighborIndex is not None:
+                        openSet.pop(neighborIndex)
+                        openSet.insert(0, neighbor)
+                        for i in range(len(openSet) - 1):
+                            if fScore[openSet[i]] > fScore[openSet[i+1]]:
+                                temp = openSet[i]
+                                openSet[i] = openSet[i+1]
+                                openSet[i+1] = temp
+                    
+   
+        return []
 
 
 
