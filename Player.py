@@ -24,7 +24,7 @@ class Player:
         self.health = 100
         self.armor = 0
         self.primary_ammo = 20
-        self.secondary_ammo = 4  
+        self.secondary_ammo = 4
         self.speed = 4
         self.min_speed = 1
         self.velocity = pygame.Vector2(0,0)
@@ -40,9 +40,9 @@ class Player:
   
 
     def draw(self) -> None:
-        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,10)
+        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
         for i in self.walk_route:
-            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], 10)
+            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
         #FOV debug
         fov_straight = self.Position_in_game + self.direction *1000
@@ -51,7 +51,7 @@ class Player:
 
         pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_left.x, fov_left.y), 4)
         pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_right.x, fov_right.y), 4)
-        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
+        #pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
 
 
     def update(self, deltaTime) -> None:
@@ -65,7 +65,7 @@ class Player:
         fov_right = self.direction.rotate(self.FOV)
         player_in_fov = []
         for player in globals.players:
-            if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and  not self.is_player_behind_wall(player):
+            if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and not self.is_player_behind_wall(player):
                 player_in_fov.append(player)
 
         player_to_shoot = self.get_closer_player(player_in_fov)
@@ -80,8 +80,10 @@ class Player:
         position = self.Position_in_game + direction
         while 0 <= position.x <= globals.WIDTH and 0 <= position.y <= globals.WIDTH:
             color = pygame.Surface.get_at(self.map.WORLD,(int(position.x), int(position.y)))
-            if color == (255, 0, 0):
+            if color == globals.RED:
                 return True
+            elif color in globals.PLAYER_COLORS and color != self.color:
+                return False
             position += direction
 
     def is_inside_view_cone(self,starting_point, fov_left, fov_right, point_to_test):

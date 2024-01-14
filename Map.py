@@ -1,4 +1,5 @@
 import pygame
+import globals
 from typing import List
 from typing import Dict
 import csv
@@ -17,7 +18,7 @@ class Node:
         self.size = int(size)
         self.worldX = self.x * self.size + self.size / 2
         self.worldY = self.y * self.size  + self.size / 2
-        self.color = (255, 0, 0) if type == WALL else (255, 255, 255)
+        self.color = globals.RED if type == WALL else globals.WHITE
         self.neighbours: List[tuple[Node, float]] = []
 
     def draw(self) -> None:
