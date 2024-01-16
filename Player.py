@@ -9,7 +9,7 @@ from typing import Dict
 
 class Player:
     radius = 10
-    def __init__(self, map:Map.Map, position, color, celx,cely) -> None:
+    def __init__(self, map:Map.Map, position, color, celx,cely,id) -> None:
         self.map:Map.Map = map
         self.Position_in_grid = position
         self.Position_in_game = pygame.Vector2(
@@ -36,6 +36,8 @@ class Player:
         self.shoot_primary_cooldown = 300
         self.shoot_secondary_cooldown = 3000
         self.FOV = globals.max_fov/2
+        #for debug
+        self.id  = id
 
   
 

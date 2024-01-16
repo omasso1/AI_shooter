@@ -13,9 +13,9 @@ class Game:
         self.HEIGHT = self.WIDTH
         self._init()
         self.map:Map.Map = Map.Map(self.WORLD)
-        globals.players.append(Player.Player(self.map, [1, 1], (0,125,125), 1,10))
-        globals.players.append(Player.Player(self.map, [21, 21], (125,0,125),18,16))
-        globals.players.append(Player.Player(self.map, [24, 22], (125,125,0),1,21))
+        globals.players.append(Player.Player(self.map, [1, 1], globals.BLUE, 1,10,1))
+        globals.players.append(Player.Player(self.map, [21, 21], globals.GREEN,18,16,2))
+        globals.players.append(Player.Player(self.map, [24, 22], globals.PURPLE,1,21,3))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = globals.WHITE
