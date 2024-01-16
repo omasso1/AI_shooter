@@ -2,6 +2,7 @@ import Map
 import pygame
 import globals
 import math
+import random
 from Projectile import Projectile
 from typing import List
 from typing import Dict
@@ -23,7 +24,7 @@ class Player:
         print(self.walk_route)
         self.health = 100
         self.armor = 0
-        self.primary_ammo = 20
+        self.primary_ammo = 3
         self.secondary_ammo = 4
         self.speed = 4
         self.min_speed = 1
@@ -33,9 +34,11 @@ class Player:
         self.direction = pygame.Vector2(0, 0)
         self.is_walking = False
         self.last_time_shoot = pygame.time.get_ticks()
-        self.shoot_primary_cooldown = 300
+        self.shoot_primary_cooldown = 3000
         self.shoot_secondary_cooldown = 3000
         self.FOV = globals.max_fov/2
+        self.is_casting_primary = False
+        self.started_casting_time = pygame.time.get_ticks()
         #for debug
         self.id  = id
 
@@ -43,16 +46,18 @@ class Player:
 
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
-        for i in self.walk_route:
-            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
+        if self.is_casting_primary:
+            pygame.draw.circle(self.map.WORLD, globals.CASTING_COLOR, self.Position_in_game, self.radius/2)
+        #for i in self.walk_route:
+        #    pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
         #FOV debug
         fov_straight = self.Position_in_game + self.direction *1000
         fov_left = self.Position_in_game + self.direction.rotate(-self.FOV)*1000
         fov_right = self.Position_in_game + self.direction.rotate(self.FOV)*1000
 
-        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_left.x, fov_left.y), 4)
-        pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_right.x, fov_right.y), 4)
+        #pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_left.x, fov_left.y), 4)
+        #pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_right.x, fov_right.y), 4)
         #pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
 
 
@@ -80,11 +85,11 @@ class Player:
     def is_player_behind_wall(self,player):
         direction = (player.Position_in_game - self.Position_in_game).normalize()/8
         position = self.Position_in_game + direction
-        while 0 <= position.x <= globals.WIDTH and 0 <= position.y <= globals.WIDTH:
+        while 0 <= position.x < globals.WIDTH and 0 <= position.y < globals.WIDTH:
             color = pygame.Surface.get_at(self.map.WORLD,(int(position.x), int(position.y)))
             if color == globals.OBSTACLE_COLOR:
                 return True
-            elif color in globals.PLAYER_COLORS and color != self.color:
+            elif color in globals.PLAYER_COLORS and color != self.color and color != globals.CASTING_COLOR:
                 return False
             position += direction
 
@@ -104,12 +109,21 @@ class Player:
 
 
     def shoot_primary(self) -> None:
-        timer = pygame.time.get_ticks()
-        if self.primary_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
-            angle = math.atan2(self.direction.y, self.direction.x)
-            globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True))
-            self.primary_ammo -= 1
-            self.last_time_shoot = timer
+        if not self.is_casting_primary and self.primary_ammo > 0 :
+            self.started_casting_time = pygame.time.get_ticks()
+            self.is_casting_primary = True
+        else:
+            cast = pygame.time.get_ticks()
+            if cast - self.started_casting_time > globals.PRIMARY_CAST_TIME:
+                timer = pygame.time.get_ticks()
+                if self.primary_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
+                    angle = math.atan2(self.direction.y, self.direction.x)
+                    angle += math.radians(random.randint(-5, 5))
+                    globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True))
+                    self.primary_ammo -= 1
+                    self.is_casting_primary = False
+                    self.last_time_shoot = timer
+                self.started_casting_time = cast
 
     def shoot_secondary(self) -> None:
         timer = pygame.time.get_ticks()

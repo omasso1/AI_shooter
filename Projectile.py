@@ -11,7 +11,7 @@ class Projectile(pygame.sprite.Sprite):
         self.screen = screen
         self.position = pygame.Vector2(x, y)
         self.radius = 4
-        self.speed = 20
+        self.speed = 35
         self.screen_width = globals.WIDTH
         self.color = (125, 125, 125)
         self.dx = math.cos(angle) * self.speed
@@ -22,6 +22,7 @@ class Projectile(pygame.sprite.Sprite):
         if not self.is_primary_shoot:
             self.color = (0, 0, 0)
             self.radius = 10
+            self.speed = 20
 
     def draw(self, deltaTime:float):
         if not self.explosion:
