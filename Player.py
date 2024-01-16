@@ -6,7 +6,8 @@ import random
 from Projectile import Projectile
 from typing import List
 from typing import Dict
-
+from typing import Callable
+import StateMachine
 
 class Player:
     radius = 10
@@ -41,8 +42,27 @@ class Player:
         self.started_casting_time = pygame.time.get_ticks()
         #for debug
         self.id  = id
+        self.stateMachine:StateMachine.StateMachine = StateMachine.StateMachine(self)
+        self.init_states()
 
-  
+
+    def temp_function(self) -> None:
+        if (pygame.time.get_ticks() // 1000) % 3 == 0:
+            return True
+        return False
+
+    
+    def temp_function2(self) -> None:
+        if (pygame.time.get_ticks() // 1000) % 2 == 0:
+            return True
+        return False
+
+    def init_states(self) -> None:
+        self.stateMachine.add_state("Walking", None, self.move)
+        self.stateMachine.add_state("Standing", None, None)
+        self.stateMachine.change_current_state("Standing")
+        self.stateMachine.add_transition(self.temp_function, "Walking", "Standing")
+        self.stateMachine.add_transition(self.temp_function2, "Standing", "Walking")
 
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
@@ -62,10 +82,12 @@ class Player:
 
 
     def update(self, deltaTime) -> None:
-        self.is_any_player_in_fov()
-        self.check_if_hit()
-        self.collect_supply()
-        self.move(deltaTime)
+        #self.is_any_player_in_fov()
+        #self.check_if_hit()
+        #self.collect_supply()
+        #self.move(deltaTime)
+        self.stateMachine.check_state_change()
+        self.stateMachine.behave(deltaTime)
 
     def is_any_player_in_fov(self):
         fov_left = self.direction.rotate(-self.FOV)
