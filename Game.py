@@ -80,8 +80,8 @@ class Game:
     def mainLoop(self) -> None:
         while self.running:
             self._pollEvents()
-            #self._respawnPlayerIfNeeded()
-            #self._create_supplies()
+            self._respawnPlayerIfNeeded()
+            self._create_supplies()
             self._update()
             self._draw()
         

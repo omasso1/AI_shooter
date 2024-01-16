@@ -216,7 +216,8 @@ class Map:
                 node.neighbours.append((node2, single_weight))
             if node2 not in visited:
                 self.set_neighbours(node2, visited)
-        
+        if len(node.neighbours) > 0:
+            self.empty_cells.append([node.x, node.y])
 
 
     def draw(self) -> None:
