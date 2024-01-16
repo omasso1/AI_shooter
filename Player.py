@@ -69,18 +69,18 @@ class Player:
                 player_in_fov.append(player)
 
         player_to_shoot = self.get_closer_player(player_in_fov)
-        if player_to_shoot is not None and not self.is_walking:
+        if player_to_shoot is not None:
             direction = (player_to_shoot.Position_in_game - self.Position_in_game)
             angle = self.direction.angle_to(direction)
             self.direction = self.direction.rotate(angle)
             self.shoot_primary()
 
     def is_player_behind_wall(self,player):
-        direction = (player.Position_in_game - self.Position_in_game).normalize()/2
+        direction = (player.Position_in_game - self.Position_in_game).normalize()/8
         position = self.Position_in_game + direction
         while 0 <= position.x <= globals.WIDTH and 0 <= position.y <= globals.WIDTH:
             color = pygame.Surface.get_at(self.map.WORLD,(int(position.x), int(position.y)))
-            if color == globals.RED:
+            if color == globals.OBSTACLE_COLOR:
                 return True
             elif color in globals.PLAYER_COLORS and color != self.color:
                 return False
