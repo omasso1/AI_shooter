@@ -1,4 +1,5 @@
 import pygame
+import globals
 from typing import List
 from typing import Dict
 import csv
@@ -17,7 +18,7 @@ class Node:
         self.size = int(size)
         self.worldX = self.x * self.size + self.size / 2
         self.worldY = self.y * self.size  + self.size / 2
-        self.color = (255, 0, 0) if type == WALL else (255, 255, 255)
+        self.color = globals.RED if type == WALL else globals.WHITE
         self.neighbours: List[tuple[Node, float]] = []
 
     def draw(self) -> None:
@@ -49,7 +50,7 @@ class Obstacle:
     def __init__(self, points:List[pygame.Vector2], world:pygame.surface) -> None:
         self.points:List[pygame.Vector2] = points
         self.WORLD:pygame.surface = world
-        self.color:tuple(int, int, int) = (0, 0, 255)
+        self.color:tuple(int, int, int) = globals.OBSTACLE_COLOR
         self.lines:List[Segment] = []
         for i in range(len(self.points) - 1):
             self.lines.append(Segment(self.points[i].x, self.points[i].y, self.points[i+1].x, self.points[i+1].y))
@@ -67,6 +68,7 @@ class Map:
         self.cellSize:float = self.WORLD.get_width() / self.mapSize
         self.grid:List[List[Node]] = []
         self.obstacles:List[Obstacle] = []
+        self.empty_cells = []
         self._initGrid()
         
     def _initGrid(self) -> None:
@@ -75,10 +77,23 @@ class Map:
             self.grid.append([])
             for x in range(self.mapSize):
                 self.grid[y].append(Node(x, y, self.cellSize, self.WORLD))
+                if self.grid[y][x].type == EMPTY:
+                    self.empty_cells.append([y, x])
         v = pygame.Vector2
-        
-        self.obstacles.append(Obstacle([v(100,100), v(200, 200), v(100, 150)], self.WORLD))
+
+        self.obstacles.append(Obstacle([v(0, 0), v(0, 70), v(70, 0)], self.WORLD))
+        self.obstacles.append(Obstacle([v(250, 100), v(100, 250), v(300, 300)], self.WORLD))
+        self.obstacles.append(Obstacle([v(350,0), v(450, 0),v(450,20),v(370,20),v(370,130),v(450,130), v(450, 150), v(350,150)], self.WORLD))
+        self.obstacles.append(Obstacle([v(570, 150), v(620,150), v(620,220), v(680,220), v(680,420), v(640,420),  v(600,360)], self.WORLD))
+        self.obstacles.append(Obstacle([v(100, 400), v(150,400), v(150,470), v(250,470), v(250,400), v(300,400), v(325, 400), v(325,500), v(100,500)], self.WORLD))
+        self.obstacles.append(Obstacle([v(450,400), v(530,410), v(530,510), v(600,610), v(540,640), v(400,520)], self.WORLD))
+        self.obstacles.append(Obstacle([v(100,650), v(300, 600), v(400,700), v(260,700), v(230,690), v(100,690)], self.WORLD))
+        self.obstacles.append(Obstacle([v(770,450),v(806, 450),v(806,650),v(770,650), v(770,580),v(690,580),v(690,550),v(770,550)], self.WORLD))
+        self.obstacles.append(Obstacle([v(806,0), v(806,25), v(735,25), v(735,130), v(710,130), v(710,0)], self.WORLD))
+        self.obstacles.append(Obstacle([v(610,700), v(635,700), v(635,806), v(610,806)], self.WORLD))
+
         self.set_neighbours(self.grid[0][0], [])
+
 
         #for y in range(self.mapSize):
         #    for x in range(self.mapSize):

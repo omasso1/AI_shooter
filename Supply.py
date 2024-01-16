@@ -1,5 +1,5 @@
 import pygame
-
+import globals
 
 class Supply:
     def __init__(self, is_armor, is_primary_ammo, is_secondary_ammo, is_health, position:pygame.Vector2, World:pygame.Surface):
@@ -13,16 +13,16 @@ class Supply:
         self.radius = 6
         self.WORLD: pygame.Surface = World
         if self.is_primary_ammo:
-            self.color = (0,255,255)
+            self.color = globals.PRIMARY_AMMO_COLOR
             self.value = 10
         elif self.is_secondary_ammo:
-            self.color = (255, 0, 255)
+            self.color = globals.SECONDARY_AMMO_COLOR
             self.value = 10
         elif self.is_armor:
-            self.color = (125,125,125)
+            self.color = globals.ARMOR_COLOR
             self.value = 50
         elif self.is_health:
-            self.color = (255,70,70)
+            self.color = globals.HEALTH_COLOR
             self.value = 25
 
     def draw(self):
