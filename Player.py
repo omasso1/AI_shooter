@@ -8,6 +8,7 @@ from typing import Dict
 
 
 class Player:
+    radius = 10
     def __init__(self, map:Map.Map, position, color, celx,cely) -> None:
         self.map:Map.Map = map
         self.Position_in_grid = position
@@ -23,8 +24,7 @@ class Player:
         self.health = 100
         self.armor = 0
         self.primary_ammo = 20
-        self.secondary_ammo = 4
-        self.radius = 10
+        self.secondary_ammo = 4  
         self.speed = 4
         self.min_speed = 1
         self.velocity = pygame.Vector2(0,0)
@@ -40,9 +40,9 @@ class Player:
   
 
     def draw(self) -> None:
-        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
+        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,10)
         for i in self.walk_route:
-            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
+            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], 10)
 
         #FOV debug
         fov_straight = self.Position_in_game + self.direction *1000
