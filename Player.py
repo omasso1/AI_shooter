@@ -40,9 +40,9 @@ class Player:
   
 
     def draw(self) -> None:
-        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,10)
+        pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
         for i in self.walk_route:
-            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], 10)
+            pygame.draw.circle(self.map.WORLD, (0, 0, 0), [i[0], i[1]], self.radius)
 
         #FOV debug
         fov_straight = self.Position_in_game + self.direction *1000
