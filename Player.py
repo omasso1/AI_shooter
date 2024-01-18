@@ -84,6 +84,18 @@ class Player:
     def low_hp_some_ammo_rocket(self) -> None:
         return self.is_hp_low() and self.is_low_rocket()
     
+    def StrafeRocket_to_StrafeRailgun(self) -> None:
+        return not self.is_low_railgun() and self.is_zero_rocket()
+
+    def StrafeRailgun_to_StrafeRocket(self) -> None:
+        return not self.is_low_rocket() and self.is_zero_railgun()
+    
+    def enemy_dead(self) -> None:
+        #TODO: CHANGE THAT LOGIC
+        return self.is_any_player_in_fov() 
+    
+    def enemy_dead_low_hp(self) -> None:
+        return self.enemy_dead() and self.is_hp_low()
     
 
     def init_states(self) -> None:
@@ -97,8 +109,12 @@ class Player:
         self.stateMachine.add_transition(self.is_any_player_in_fov, "LookingForEnemy", "SetupShooting")
         self.stateMachine.add_transition(self.low_hp_some_ammo_railgun, "StrafeRailgun", "RunForHPShooting")
         self.stateMachine.add_transition(self.low_hp_some_ammo_rocket, "StrafeRailgun", "RunForHPShooting")
+        self.stateMachine.add_transition(self.StrafeRailgun_to_StrafeRocket, "StrafeRailgun", "StrafeRocket")
+        self.stateMachine.add_transition(self.StrafeRocket_to_StrafeRailgun, "StrafeRocket", "StrafeRailgun")
+        self.stateMachine.add_transition(self.enemy_dead_low_hp, "RunForHPShooting", "RunForHP")
+        self.stateMachine.add_transition(self.enemy_dead_low_hp, "StrafeRailgun", "RunForHP")
+        self.stateMachine.add_transition(self.enemy_dead_low_hp, "StrafeRocket", "RunForHP")
         
-
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
         if self.is_casting_primary:
