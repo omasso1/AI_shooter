@@ -84,6 +84,8 @@ class Player:
     def low_hp_some_ammo_rocket(self) -> None:
         return self.is_hp_low() and self.is_low_rocket()
     
+    
+
     def init_states(self) -> None:
         self.stateMachine.add_state("LookingForEnemy", None, self.looking_for_enemy)
         self.stateMachine.add_state("SetupShooting", self.setup_shooting, None)
