@@ -11,6 +11,10 @@ import StateMachine
 
 class Player:
     radius = 10
+    low_railgun_ammo = 1
+    low_rocket_ammo = 2
+    low_hp = 30
+
     def __init__(self, map:Map.Map, position, color, celx,cely,id) -> None:
         self.map:Map.Map = map
         self.Position_in_grid = position
@@ -25,8 +29,8 @@ class Player:
         print(self.walk_route)
         self.health = 100
         self.armor = 0
-        self.primary_ammo = 3
-        self.secondary_ammo = 4
+        self.railgun_ammo = 3
+        self.rocket_ammo = 4
         self.speed = 4
         self.min_speed = 1
         self.velocity = pygame.Vector2(0,0)
@@ -44,25 +48,54 @@ class Player:
         self.id  = id
         self.stateMachine:StateMachine.StateMachine = StateMachine.StateMachine(self)
         self.init_states()
+        self.player_in_fov:List[Player] = []
 
 
-    def temp_function(self) -> None:
-        if (pygame.time.get_ticks() // 1000) % 3 == 0:
-            return True
-        return False
+    def looking_for_enemy(self, deltaTime) -> None:
+        pass
 
+    def setup_shooting(self, deltaTime) -> None:
+        pass
+
+    def strafe_rocket(self, deltaTime) -> None:
+        pass
+
+    def strafe_railgun(self, deltaTime) -> None:
+        pass
+
+    def find_hp(self) -> None:
+        pass
+
+    def run_for_hp_shoot(self, deltaTime) -> None:
+        pass
+
+    def find_ammo(self) -> None:
+        pass
+
+    def go_for_ammo(self, deltaTime) -> None:
+        pass
+
+    def go_for_hp(self, deltaTime) -> None:
+        pass
+
+    def low_hp_some_ammo_railgun(self) -> None:
+        return self.is_hp_low() and self.is_low_railgun()
     
-    def temp_function2(self) -> None:
-        if (pygame.time.get_ticks() // 1000) % 2 == 0:
-            return True
-        return False
-
+    def low_hp_some_ammo_rocket(self) -> None:
+        return self.is_hp_low() and self.is_low_rocket()
+    
     def init_states(self) -> None:
-        self.stateMachine.add_state("Walking", None, self.move)
-        self.stateMachine.add_state("Standing", None, None)
-        self.stateMachine.change_current_state("Standing")
-        self.stateMachine.add_transition(self.temp_function, "Walking", "Standing")
-        self.stateMachine.add_transition(self.temp_function2, "Standing", "Walking")
+        self.stateMachine.add_state("LookingForEnemy", None, self.looking_for_enemy)
+        self.stateMachine.add_state("SetupShooting", self.setup_shooting, None)
+        self.stateMachine.add_state("StrafeRocket", None, self.strafe_rocket)
+        self.stateMachine.add_state("StrafeRailgun", None, self.strafe_railgun)
+        self.stateMachine.add_state("RunForHPShooting", self.find_hp, self.run_for_hp_shoot)
+        self.stateMachine.add_state("RunForAmmo", self.find_ammo, self.go_for_ammo)
+        self.stateMachine.add_state("RunForHP", self.find_hp, self.go_for_hp)
+        self.stateMachine.add_transition(self.is_any_player_in_fov, "LookingForEnemy", "SetupShooting")
+        self.stateMachine.add_transition(self.low_hp_some_ammo_railgun, "StrafeRailgun", "RunForHPShooting")
+        self.stateMachine.add_transition(self.low_hp_some_ammo_rocket, "StrafeRailgun", "RunForHPShooting")
+        
 
     def draw(self) -> None:
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
@@ -81,6 +114,21 @@ class Player:
         #pygame.draw.line(self.map.WORLD, self.color, self.Position_in_game, (fov_straight.x, fov_straight.y), 3)
 
 
+    def is_low_railgun(self) -> bool:
+        return self.railgun_ammo <= self.low_railgun_ammo
+    
+    def is_low_rocket(self) -> bool:
+        return self.rocket_ammo <= self.low_rocket_ammo
+    
+    def is_zero_railgun(self) -> bool:
+        return self.railgun_ammo == 0
+    
+    def is_zero_rocket(self) -> bool:
+        return self.rocket_ammo == 0
+    
+    def is_hp_low(self) -> bool:
+        return self.hp <= self.low_hp
+
     def update(self, deltaTime) -> None:
         #self.is_any_player_in_fov()
         #self.check_if_hit()
@@ -89,20 +137,23 @@ class Player:
         self.stateMachine.check_state_change()
         self.stateMachine.behave(deltaTime)
 
-    def is_any_player_in_fov(self):
-        fov_left = self.direction.rotate(-self.FOV)
-        fov_right = self.direction.rotate(self.FOV)
-        player_in_fov = []
+    def is_any_player_in_fov(self) -> bool:
+        fov_left = self.eye_direction.rotate(-self.FOV)
+        fov_right = self.eye_direction.rotate(self.FOV)
+        self.player_in_fov:List[Player] = []
         for player in globals.players:
             if player != self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and not self.is_player_behind_wall(player):
-                player_in_fov.append(player)
+                self.player_in_fov.append(player)
 
-        player_to_shoot = self.get_closer_player(player_in_fov)
+        return len(self.player_in_fov.player_in_fov) > 0
+
+    def choose_target(self) -> None:
+        player_to_shoot = self.get_closer_player(self.player_in_fov)
         if player_to_shoot is not None:
             direction = (player_to_shoot.Position_in_game - self.Position_in_game)
-            angle = self.direction.angle_to(direction)
-            self.direction = self.direction.rotate(angle)
-            self.shoot_primary()
+            angle = self.eye_direction.angle_to(direction)
+            self.eye_direction = self.direction.rotate(angle)
+            self.shoot_railgun()
 
     def is_player_behind_wall(self,player):
         direction = (player.Position_in_game - self.Position_in_game).normalize()/8
@@ -130,30 +181,30 @@ class Player:
         return closest_player
 
 
-    def shoot_primary(self) -> None:
-        if not self.is_casting_primary and self.primary_ammo > 0 :
+    def shoot_railgun(self) -> None:
+        if not self.is_casting_primary and self.railgun_ammo > 0 :
             self.started_casting_time = pygame.time.get_ticks()
             self.is_casting_primary = True
         else:
             cast = pygame.time.get_ticks()
             if cast - self.started_casting_time > globals.PRIMARY_CAST_TIME:
                 timer = pygame.time.get_ticks()
-                if self.primary_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
+                if self.railgun_ammo > 0 and timer - self.last_time_shoot > self.shoot_primary_cooldown:
                     angle = math.atan2(self.direction.y, self.direction.x)
                     angle += math.radians(random.randint(-5, 5))
                     globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True))
-                    self.primary_ammo -= 1
+                    self.railgun_ammo -= 1
                     self.is_casting_primary = False
                     self.last_time_shoot = timer
                 self.started_casting_time = cast
 
-    def shoot_secondary(self) -> None:
+    def shoot_rocket(self) -> None:
         timer = pygame.time.get_ticks()
-        if self.secondary_ammo > 0 and timer - self.last_time_shoot > self.shoot_secondary_cooldown:
+        if self.rocket_ammo > 0 and timer - self.last_time_shoot > self.shoot_secondary_cooldown:
             angle = math.atan2(self.direction.y, self.direction.x)
             globals.projectiles.append(
                 Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False))
-            self.secondary_ammo -= 1
+            self.rocket_ammo -= 1
             self.last_time_shoot = timer
 
     def check_if_hit(self):
@@ -172,9 +223,9 @@ class Player:
         for supply in globals.supplies:
             if self.Position_in_game.distance_to(supply.position) <= self.radius + supply.radius:
                 if supply.is_primary_ammo:
-                    self.primary_ammo += supply.value
+                    self.railgun_ammo += supply.value
                 elif supply.is_secondary_ammo:
-                    self.secondary_ammo += supply.value
+                    self.rocket_ammo += supply.value
                 elif supply.is_health:
                     self.health += supply.value
                 elif supply.is_armor:
@@ -204,6 +255,7 @@ class Player:
                     self.last_points[0] += 1
                     self.last_points[1] += 1
 
+
     def A_Star(self, start:Map.Node, goal:Map.Node):
         def reconstruct_path(cameFrom:Dict[Map.Node, Map.Node], current:Map.Node):
             total_path:List[List[float]] = [[current.worldX, current.worldY]]
@@ -220,9 +272,6 @@ class Player:
                     temp[node] = 10000000000.0
             return temp
         
-        def printOpenSet(openSet, fScore):
-            for item in openSet:
-                print(item.worldX, item.worldY, fScore[item])
 
         h = lambda a,b:  math.sqrt((a.worldX - b.worldX) ** 2 + (a.worldY - b.worldY) ** 2)
         openSet:List[Map.Node] = [start]
