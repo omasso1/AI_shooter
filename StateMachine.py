@@ -38,17 +38,22 @@ class StateMachine:
             transition_state_name = transition[1]
             if transition_function():
                 self.change_current_state(self.states[transition_state_name])
-
+                return
+            
     def change_current_state(self, new_state:State|str):
+        if self.current_state is not None:
+            old_state_name = self.current_state.name
+        else:
+            old_state_name = "None"
         if self.current_state is not None and self.current_state.out_function is not None:
             self.current_state.out_function()
 
         if type(new_state) is str:
             self.current_state = self.states[new_state]
-            print(f"Player color {self.player.color} change state to {new_state}")
+            print(f"Player color {self.player.color} change state from {old_state_name} to {new_state}")
         else:
             self.current_state = new_state
-            print(f"Player color {self.player.color} change state to {new_state.name}")
+            print(f"Player color {self.player.color} change state from {old_state_name} to {new_state.name}")
         if self.current_state.in_function is not None:
             self.current_state.in_function()
 

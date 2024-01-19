@@ -172,8 +172,10 @@ class Player:
         return self.is_zero_railgun() and self.is_zero_rocket()
     
     def enemy_dead(self) -> bool:
-        #TODO: CHANGE THAT LOGIC
-        return self.is_any_player_in_fov() 
+        if self.target_to_shoot is None:
+            return True
+        if self.target_to_shoot.health <=0:
+            return True
     
     def enemy_dead_low_hp(self) -> bool:
         return self.enemy_dead() and self.is_hp_low()
@@ -222,9 +224,17 @@ class Player:
     def any_hp_on_map(self) -> bool:
         for supply in globals.supplies:
             if supply.is_health:
+                print("any hp")
                 return True
+        print("No hp")
         return False
 
+    def enemy_dead_high_ammo_high_hp(self) -> bool:
+        return self.enemy_dead() and not self.is_hp_low() and not self.is_low_railgun() and not self.is_low_rocket()
+     
+    def is_target_not_in_fov(self) -> bool:
+        return not self.is_player_in_fov(self.target_to_shoot)
+    
     def init_states(self) -> None:
         self.stateMachine.add_state("LookingForEnemy", None, None, self.looking_for_enemy)
         self.stateMachine.add_state("SetupShooting", self.setup_shooting, None,  None)
@@ -245,6 +255,11 @@ class Player:
         self.stateMachine.add_transition(self.enemy_dead_low_ammo, "RunForHPShooting", "RunForAmmo")
         self.stateMachine.add_transition(self.enemy_dead_low_ammo, "StrafeRailgun", "RunForAmmo")
         self.stateMachine.add_transition(self.enemy_dead_low_ammo, "StrafeRocket", "RunForAmmo")
+        self.stateMachine.add_transition(self.enemy_dead_high_ammo_high_hp, "StrafeRocket", "LookingForEnemy")
+        self.stateMachine.add_transition(self.enemy_dead_high_ammo_high_hp, "StrafeRailgun", "LookingForEnemy")
+        self.stateMachine.add_transition(self.is_target_not_in_fov, "StrafeRocket", "LookingForEnemy")
+        self.stateMachine.add_transition(self.is_target_not_in_fov, "StrafeRailgun", "LookingForEnemy")
+        self.stateMachine.add_transition(self.enemy_dead_high_ammo_high_hp, "StrafeRailgun", "LookingForEnemy")
         self.stateMachine.add_transition(self.both_ammo_zero, "StrafeRailgun", "RunForAmmo")
         self.stateMachine.add_transition(self.both_ammo_zero, "StrafeRocket", "RunForAmmo")
         self.stateMachine.add_transition(self.enemy_found_some_ammo, "RunForAmmo", "SetupShooting")
@@ -266,7 +281,7 @@ class Player:
 
 
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
-        return
+
         #FOV debug
         fov_straight = self.Position_in_game + self.eye_direction *1000
         fov_left = self.Position_in_game + self.eye_direction.rotate(-self.FOV)*1000
@@ -308,14 +323,19 @@ class Player:
         self.stateMachine.behave(deltaTime)
 
     def is_any_player_in_fov(self) -> bool:
-        fov_left = self.eye_direction.rotate(-self.FOV)
-        fov_right = self.eye_direction.rotate(self.FOV)
         self.player_in_fov:List[Player] = []
         for player in globals.players:
-            if player is not self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and not self.is_player_behind_wall(player):
+            if self.is_player_in_fov(player):
                 self.player_in_fov.append(player)
         return len(self.player_in_fov) > 0
 
+    def is_player_in_fov(self, player:Player) -> bool:
+        fov_left = self.eye_direction.rotate(-self.FOV)
+        fov_right = self.eye_direction.rotate(self.FOV)
+        if player is not self and self.is_inside_view_cone(self.Position_in_game,fov_left, fov_right,player.Position_in_game) and not self.is_player_behind_wall(player):
+            return True
+        return False
+    
     def choose_target_to_shoot(self) -> Player:
         return self.get_closer_player(self.player_in_fov)
 
@@ -423,7 +443,7 @@ class Player:
                     self.last_points[1] += 1
 
 
-        if self.last_points[0] == len(self.walk_route) - 1:
+        if self.last_points[0] >= len(self.walk_route) - 1:
             self.goal_reached = True
             self.is_walking = False
 

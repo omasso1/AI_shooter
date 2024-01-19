@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 
 class Segment:
     def __init__(self, x1:float, y1:float, x2:float, y2:float):
@@ -18,12 +18,12 @@ class Segment:
     def value(self, x):
         return self.a * x + self.b
     
-    def intersects(self, line2):
+    def intersects(self, line2:Segment):
         y11 = self.value(line2.x1)
         y12 = self.value(line2.x2)
         y21 = line2.value(self.x1)
         y22 = line2.value(self.x2)
-        if (line2.y1 - y11) * (line2.y2 - y12) <= 0 and (self.y1 - y21) * (self.y2 - y22) < 0:
+        if (line2.y1 - y11) * (line2.y2 - y12) <= 0 and (self.y1 - y21) * (self.y2 - y22) <= 0:
             return True
         return False 
     
