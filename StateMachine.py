@@ -30,6 +30,8 @@ class StateMachine:
         self.states[state_to_change_from_name].transitions.append((transition_function, state_to_change_to_name))
 
     def check_state_change(self) -> None:
+        if self.current_state is None:
+            return
         for transition in self.current_state.transitions:
             transition_function:Callable = transition[0]
             transition_state_name = transition[1]
@@ -39,12 +41,16 @@ class StateMachine:
     def change_current_state(self, new_state:State|str):
         if type(new_state) is str:
             self.current_state = self.states[new_state]
+            print(f"Player color {self.player.color} change state to {new_state}")
         else:
             self.current_state = new_state
+            print(f"Player color {self.player.color} change state to {new_state.name}")
         if self.current_state.in_function is not None:
-            self.current_state.in_function(self.player)
+            self.current_state.in_function()
 
 
     def behave(self, deltaTime):
+        if self.current_state is None:
+            return
         if self.current_state.behaviour is not None:
             self.current_state.behaviour(deltaTime)

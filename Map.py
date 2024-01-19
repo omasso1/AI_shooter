@@ -5,13 +5,15 @@ from typing import Dict
 import csv
 import math
 import Player
+from common import *
 
-WALL = 1
-EMPTY = 0
+
+WALL = 0
+EMPTY = 1
 
 class Node:
     def __init__(self, x: int, y: int, size: float, World: pygame.surface) -> None:
-        self.type = EMPTY
+        self.type = WALL
         self.x = x
         self.y = y
         self.WORLD = World
@@ -22,30 +24,12 @@ class Node:
         self.neighbours: List[tuple[Node, float]] = []
 
     def draw(self) -> None:
-        pygame.draw.rect(self.WORLD, self.color,
-                         pygame.Rect(self.worldX - self.size / 2, self.worldY - self.size / 2, self.size, self.size))
+        #pygame.draw.rect(self.WORLD, self.color,
+         #                pygame.Rect(self.worldX - self.size / 2, self.worldY - self.size / 2, self.size, self.size))
         #debug
         for neighbor in self.neighbours:
             pygame.draw.line(self.WORLD, (0,0,0), (self.worldX, self.worldY), (neighbor[0].worldX, neighbor[0].worldY))
 
-class Segment:
-    def __init__(self, x1:float, y1:float, x2:float, y2:float):
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
-        #as in form y = ax + b
-        if (y2 - y1 == 0):
-            y2+=0.000000001
-        if (x2 - x1 == 0):
-            x2+=0.000000001
-
-        self.a = (y2-y1) / (x2 - x1)
-        self.b = y1 - self.a * x1
-        
-    def value(self, x):
-        return self.a * x + self.b
-    
 class Obstacle:
     def __init__(self, points:List[pygame.Vector2], world:pygame.surface) -> None:
         self.points:List[pygame.Vector2] = points
@@ -58,7 +42,6 @@ class Obstacle:
 
     def draw(self) -> None:
         pygame.draw.polygon(self.WORLD, self.color, self.points)
-
 
 class Map:
     def __init__(self, World:pygame.Surface) -> None:
@@ -77,10 +60,8 @@ class Map:
             self.grid.append([])
             for x in range(self.mapSize):
                 self.grid[y].append(Node(x, y, self.cellSize, self.WORLD))
-                if self.grid[y][x].type == EMPTY:
-                    self.empty_cells.append([y, x])
         v = pygame.Vector2
-
+        
         self.obstacles.append(Obstacle([v(0, 0), v(0, 70), v(70, 0)], self.WORLD))
         self.obstacles.append(Obstacle([v(250, 100), v(100, 250), v(300, 300)], self.WORLD))
         self.obstacles.append(Obstacle([v(350,0), v(450, 0),v(450,20),v(370,20),v(370,130),v(450,130), v(450, 150), v(350,150)], self.WORLD))
@@ -92,7 +73,7 @@ class Map:
         self.obstacles.append(Obstacle([v(806,0), v(806,25), v(735,25), v(735,130), v(710,130), v(710,0)], self.WORLD))
         self.obstacles.append(Obstacle([v(610,700), v(635,700), v(635,806), v(610,806)], self.WORLD))
 
-        self.set_neighbours(self.grid[0][0], [])
+        self.set_neighbours(self.grid[3][0], [])
 
 
         #for y in range(self.mapSize):
@@ -140,11 +121,7 @@ class Map:
             for obstacle in self.obstacles:
                 for line in obstacle.lines:
                     nodeLine = Segment(node1.worldX, node1.worldY, node2.worldX, node2.worldY)
-                    #check if obstacle is too close to nodes
-                    if node2.x == 2 and node2.y == 4 and node1.x == 3 and node1.y == 5:
-                        pass 
-                    if node1.x == 2 and node1.y == 4 and node2.x == 3 and node2.y == 5:
-                        pass    
+                    #check if obstacle is too close to nodes  
                     d1 = pDistance(node1.worldX, node1.worldY, line.x1, line.y1, line.x2, line.y2)
                     d2 = pDistance(node2.worldX, node2.worldY, line.x1, line.y1, line.x2, line.y2)
                     d3 = pDistance(line.x1, line.y1, nodeLine.x1, nodeLine.y1, nodeLine.x2, nodeLine.y2)
@@ -152,72 +129,69 @@ class Map:
                     tooClose = tooClose or d2 < Player.Player.radius
                     tooClose = tooClose or d3 < Player.Player.radius
                     #check if lines intersect   
-                    y11 = line.value(nodeLine.x1)
-                    y12 = line.value(nodeLine.x2)
-                    y21 = nodeLine.value(line.x1)
-                    y22 = nodeLine.value(line.x2)
-                    if (nodeLine.y1 - y11) * (nodeLine.y2 - y12) <= 0 and (line.y1 - y21) * (line.y2 - y22) < 0:
+                    if line.intersects(nodeLine):
                         tooClose = True                    
             return tooClose
-                
+
         #top left   
         if y - 1 >= 0 and x-1>=0:
             node2 = self.grid[y-1][x-1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, sqrt2_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)      
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)      
         #top
         if y - 1 >= 0 :
             node2 = self.grid[y-1][x]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, single_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #top right
         if y - 1 >=0 and x+1 < self.mapSize:
             node2 = self.grid[y-1][x + 1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, sqrt2_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #right
         if x+1 < self.mapSize:
             node2 = self.grid[y][x + 1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, single_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #right bottom
         if y + 1 < self.mapSize and x + 1 < self.mapSize:
             node2 = self.grid[y+1][x+1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, sqrt2_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #bottom
         if y + 1 < self.mapSize:
             node2 = self.grid[y+1][x]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, single_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #bottom left
         if y + 1 < self.mapSize and x-1 >=0:
             node2 = self.grid[y+1][x-1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, sqrt2_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         #left
         if x-1>=0:
             node2 = self.grid[y][x-1]
             if not check_collision_with_obstacles(node, node2):
                 node.neighbours.append((node2, single_weight))
-            if node2 not in visited:
-                self.set_neighbours(node2, visited)
+                if node2 not in visited:
+                    self.set_neighbours(node2, visited)
         if len(node.neighbours) > 0:
-            self.empty_cells.append([node.x, node.y])
+            self.empty_cells.append([node.y, node.x])
+            node.type = EMPTY
 
 
     def draw(self) -> None:
