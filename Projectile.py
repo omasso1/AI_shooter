@@ -5,7 +5,7 @@ from typing import List
 from common import *
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self, screen, x, y,angle,shooter, is_primary,color):
+    def __init__(self, screen, x, y,angle,shooter, is_primary,color,destination = None):
         pygame.sprite.Sprite.__init__(self)
         self.shooter = shooter
         self.screen = screen
@@ -23,6 +23,8 @@ class Projectile(pygame.sprite.Sprite):
         self.last_hit_time =  pygame.time.get_ticks()
         self.railgun_end_point = pygame.Vector2(self.position.x + self.dx*1000, self.position.y + self.dy *1000)
         self.railgun_time_last = pygame.time.get_ticks()
+        self.explosion_margin = 30
+        self.destination = destination
         self.hit_cooldown = 1000
         if not self.is_primary_shoot:
             self.color = (0, 0, 0)
@@ -32,6 +34,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def draw(self, deltaTime:float):
         self.is_wall_between()
+        self.is_near_destination()
         if not self.is_primary_shoot:
             if not self.explosion:
                 self.update(deltaTime)
@@ -46,6 +49,12 @@ class Projectile(pygame.sprite.Sprite):
             timer = pygame.time.get_ticks()
             if timer - self.railgun_time_last > 1000:
                 globals.projectiles.remove(self)
+
+    def is_near_destination(self):
+        if self.shooter.id==3:
+            print(self.destination)
+        return self.destination is not None and self.position.distance_to(self.destination) <= self.radius+self.explosion_margin
+
 
     def is_wall_between(self):
         sighth_line = Segment(self.position.x, self.position.y, self.railgun_end_point.x, self.railgun_end_point.y)
@@ -74,7 +83,7 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self, deltaTime:float):
         if not self.is_primary_shoot:
-            if self.is_out_of_border(self.screen_width,self.screen_width): # lub kiedy trafi w przeciwnika
+            if self.is_out_of_border(self.screen_width,self.screen_width) or self.is_near_destination(): # lub kiedy trafi w przeciwnika
                 self.make_explosion()
                 if not self.explosion:
                     globals.projectiles.remove(self)

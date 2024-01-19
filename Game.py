@@ -17,7 +17,7 @@ class Game:
         globals.players.append(Player.Player(self.map, [1, 1], globals.BLUE, 1,10,1))
         globals.players.append(Player.Player(self.map, [21, 21], globals.GREEN,18,16,2))
         globals.players.append(Player.Player(self.map, [1, 23], globals.PURPLE,1,21,3))
-        globals.players.append(Player.Player(self.map, [24, 1], globals.BROWN,1,21,3))
+        globals.players.append(Player.Player(self.map, [24, 1], globals.BROWN,1,21,4))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = globals.WHITE

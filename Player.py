@@ -377,7 +377,7 @@ class Player:
                     direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
                     angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
                     #angle += math.radians(random.randint(-5, 5))
-                    globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True,self.color))
+                    #globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True,self.color))
                     self.railgun_ammo -= 1
                     self.is_casting_primary = False
                     self.last_time_shoot = timer
@@ -390,7 +390,7 @@ class Player:
             direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
             angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
             globals.projectiles.append(
-                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False,self.color,self.target_to_shoot.Position_in_game))
+                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False,self.color,pygame.Vector2(enemy_position.x, enemy_position.y)))
             self.rocket_ammo -= 1
             self.last_time_shoot = timer
 
