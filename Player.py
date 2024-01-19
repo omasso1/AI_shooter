@@ -390,7 +390,7 @@ class Player:
             direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
             angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
             globals.projectiles.append(
-                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False,self.color))
+                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False,self.color,self.target_to_shoot.Position_in_game))
             self.rocket_ammo -= 1
             self.last_time_shoot = timer
 
@@ -401,14 +401,15 @@ class Player:
                     projectile.make_explosion()
                     self.health -= projectile.deal_damage()
             else:
-                v2v1 = (projectile.railgun_end_point - projectile.position)
-                v1v2 = (projectile.position - projectile.railgun_end_point)
-                v3v1 = self.Position_in_game - projectile.position
-                u = (v3v1.dot(v2v1))/(v1v2.dot(v1v2))
-                point = projectile.position + (v2v1)* u
-                distance = (point - self.Position_in_game).length()
-                if distance <= self.radius:
-                    self.health -= 100
+                if projectile.shooter != self:
+                    v2v1 = (projectile.railgun_end_point - projectile.position)
+                    v1v2 = (projectile.position - projectile.railgun_end_point)
+                    v3v1 = self.Position_in_game - projectile.position
+                    u = (v3v1.dot(v2v1))/(v1v2.dot(v1v2))
+                    point = projectile.position + (v2v1)* u
+                    distance = (point - self.Position_in_game).length()
+                    if distance <= self.radius:
+                        self.health -= 100
         if self.health <= 0:
             globals.players.remove(self)
 
