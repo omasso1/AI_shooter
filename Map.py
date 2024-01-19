@@ -27,9 +27,9 @@ class Node:
         #pygame.draw.rect(self.WORLD, self.color,
          #                pygame.Rect(self.worldX - self.size / 2, self.worldY - self.size / 2, self.size, self.size))
         #debug
-        for neighbor in self.neighbours:
-            pygame.draw.line(self.WORLD, (0,0,0), (self.worldX, self.worldY), (neighbor[0].worldX, neighbor[0].worldY))
-
+        #for neighbor in self.neighbours:
+        #   pygame.draw.line(self.WORLD, (0,0,0), (self.worldX, self.worldY), (neighbor[0].worldX, neighbor[0].worldY))
+        pass
 class Obstacle:
     def __init__(self, points:List[pygame.Vector2], world:pygame.surface) -> None:
         self.points:List[pygame.Vector2] = points

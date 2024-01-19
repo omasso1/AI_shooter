@@ -259,12 +259,12 @@ class Player:
     def draw(self) -> None:
         if self.is_casting_primary:
             pygame.draw.circle(self.map.WORLD, globals.CASTING_COLOR, self.Position_in_game, self.radius/2)
-        for i in self.walk_route:
-            pygame.draw.circle(self.map.WORLD, [c/2 for c in self.color], [i[0], i[1]], self.radius)
+        #for i in self.walk_route:
+         #   pygame.draw.circle(self.map.WORLD, [c/2 for c in self.color], [i[0], i[1]], self.radius)
 
 
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
-        
+        return
         #FOV debug
         fov_straight = self.Position_in_game + self.eye_direction *1000
         fov_left = self.Position_in_game + self.eye_direction.rotate(-self.FOV)*1000
