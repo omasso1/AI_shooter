@@ -282,6 +282,7 @@ class Player:
 
         pygame.draw.circle(self.map.WORLD, self.color, self.Position_in_game,self.radius)
 
+        return
         #FOV debug
         fov_straight = self.Position_in_game + self.eye_direction *1000
         fov_left = self.Position_in_game + self.eye_direction.rotate(-self.FOV)*1000
@@ -376,7 +377,7 @@ class Player:
                     direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
                     angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
                     #angle += math.radians(random.randint(-5, 5))
-                    globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True))
+                    globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True,self.color))
                     self.railgun_ammo -= 1
                     self.is_casting_primary = False
                     self.last_time_shoot = timer
@@ -389,19 +390,25 @@ class Player:
             direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
             angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
             globals.projectiles.append(
-                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False))
+                Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, False,self.color))
             self.rocket_ammo -= 1
             self.last_time_shoot = timer
 
     def check_if_hit(self):
         for projectile in globals.projectiles:
-            if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter != self:
-                if projectile.is_primary_shoot:
-                    self.health -= projectile.deal_damage()
-                    globals.projectiles.remove(projectile)
-                else:
+            if not projectile.is_primary_shoot:
+                if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter != self:
                     projectile.make_explosion()
                     self.health -= projectile.deal_damage()
+            else:
+                v2v1 = (projectile.railgun_end_point - projectile.position)
+                v1v2 = (projectile.position - projectile.railgun_end_point)
+                v3v1 = self.Position_in_game - projectile.position
+                u = (v3v1.dot(v2v1))/(v1v2.dot(v1v2))
+                point = projectile.position + (v2v1)* u
+                distance = (point - self.Position_in_game).length()
+                if distance <= self.radius:
+                    self.health -= 100
         if self.health <= 0:
             globals.players.remove(self)
 

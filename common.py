@@ -25,8 +25,20 @@ class Segment:
         y22 = line2.value(self.x2)
         if (line2.y1 - y11) * (line2.y2 - y12) <= 0 and (self.y1 - y21) * (self.y2 - y22) <= 0:
             return True
-        return False 
-    
+        return False
+
+    def findIntersection(self,x1, y1, x2, y2, x3, y3, x4, y4):
+        px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / (
+                    (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
+        py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / (
+                    (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
+        return [px, py]
+
+    def line_intersection(self, line:Segment):
+        return self.intersects(line), self.findIntersection(self.x1, self.y1, self.x2, self.y2, line.x1, line.y1,
+                                                            line.x2, line.y2)
+
+
 def clamp(value, min, max):
     if value > max:
         return max

@@ -72,6 +72,7 @@ class Map:
         self.obstacles.append(Obstacle([v(770,450),v(806, 450),v(806,650),v(770,650), v(770,580),v(690,580),v(690,550),v(770,550)], self.WORLD))
         self.obstacles.append(Obstacle([v(806,0), v(806,25), v(735,25), v(735,130), v(710,130), v(710,0)], self.WORLD))
         self.obstacles.append(Obstacle([v(610,700), v(635,700), v(635,806), v(610,806)], self.WORLD))
+        self.obstacles.append(Obstacle([v(0,0), v(806,0), v(806,25), v(0,25)], self.WORLD))
 
         self.set_neighbours(self.grid[3][0], [])
 
