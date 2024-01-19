@@ -147,11 +147,13 @@ class Player:
         if self.goal_reached:
             self.find_ammo()
         self.move(deltaTime)
+        self.collect_supply()
 
     def go_for_hp(self, deltaTime) -> None:
         if self.goal_reached:
             self.find_hp()
         self.move(deltaTime)
+        self.collect_supply()
 
     ######### transitions
     def low_hp_some_ammo_railgun(self) -> bool:

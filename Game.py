@@ -32,8 +32,9 @@ class Game:
         if timer - self.last_supplies_drop > self.supplies_cooldown:
             empty_cells = self.map.empty_cells
             if len(empty_cells) > 0:
-                position = self.random_spot_for_supply_in_game_units(empty_cells)
-                globals.supplies.append(Supply(True, False, False, False, position, self.WORLD))
+                #wykomentowany arrmor
+                #position = self.random_spot_for_supply_in_game_units(empty_cells)
+                #globals.supplies.append(Supply(True, False, False, False, position, self.WORLD))
                 position = self.random_spot_for_supply_in_game_units(empty_cells)
                 globals.supplies.append(Supply(False, True, False, False, position, self.WORLD))
                 position = self.random_spot_for_supply_in_game_units(empty_cells)
