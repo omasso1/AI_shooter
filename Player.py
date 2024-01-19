@@ -368,6 +368,7 @@ class Player:
         if not self.is_casting_primary and self.railgun_ammo > 0 :
             self.started_casting_time = pygame.time.get_ticks()
             self.is_casting_primary = True
+            #self.target_position = self.target_to_shoot.Position_in_game.copy()
         else:
             cast = pygame.time.get_ticks()
             if cast - self.started_casting_time > globals.PRIMARY_CAST_TIME:
@@ -376,7 +377,7 @@ class Player:
                     enemy_position = self.target_to_shoot.Position_in_game
                     direction_to_shoot = (enemy_position - self.Position_in_game).normalize()
                     angle = math.atan2(direction_to_shoot.y, direction_to_shoot.x)
-                    #angle += math.radians(random.randint(-5, 5))
+                    angle += math.radians(random.randint(-5, 5))
                     globals.projectiles.append(Projectile(self.map.WORLD, self.Position_in_game.x, self.Position_in_game.y, angle,self, True,self.color))
                     self.railgun_ammo -= 1
                     self.is_casting_primary = False
