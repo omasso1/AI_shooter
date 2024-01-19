@@ -21,6 +21,7 @@ class Player:
     low_hp = 30
     hp_enough = 60
     distance_to_choose_rocket = 400 
+    running_multiplier = 1.2
 
     def __init__(self, map:Map.Map, position, color, celx,cely,id) -> None:
         self.map:Map.Map = map
@@ -98,20 +99,59 @@ class Player:
         self.move(deltaTime)
         self.eye_direction = (self.target_to_shoot.Position_in_game - self.Position_in_game).normalize()
 
-    def find_hp(self) -> None:
-        pass
-
     def run_for_hp_shoot(self, deltaTime) -> None:
         pass
 
+    def run_in_panic(self, deltaTime) -> None:
+        if self.goal_reached:
+            self.setTarget(self.random_cell_nearby())
+        self.move(deltaTime)
+        self.eye_direction = self.direction.copy()
+
+    def find_hp(self) -> None:
+        closest = math.inf
+        closest_node = None
+        start_node = self.map.coord_to_cell(self.Position_in_game)
+        for supply in globals.supplies:
+            if supply.is_health:
+                end_node = self.map.coord_to_cell(supply.position)
+                path = self.A_Star(start_node, end_node)
+                dist = len(path)
+                if dist < closest:
+                    closest = dist
+                    closest_node = end_node
+        if closest_node:
+            self.setTarget(closest_node)
+        else:
+            self.stateMachine.change_current_state("RunInPanic")
+
     def find_ammo(self) -> None:
-        pass
+        closest = math.inf
+        closest_node = None
+        start_node = self.map.coord_to_cell(self.Position_in_game)
+        for supply in globals.supplies:
+            if supply.is_primary_ammo or supply.is_secondary_ammo:
+                end_node = self.map.coord_to_cell(supply.position)
+                path = self.A_Star(start_node, end_node)
+                dist = len(path)
+                if dist < closest:
+                    closest = dist
+                    closest_node = end_node
+        if closest_node:
+            self.setTarget(closest_node)
+        else:
+            self.stateMachine.change_current_state("RunInPanic")
+
 
     def go_for_ammo(self, deltaTime) -> None:
-        pass
+        if self.goal_reached:
+            self.find_ammo()
+        self.move(deltaTime)
 
     def go_for_hp(self, deltaTime) -> None:
-        pass
+        if self.goal_reached:
+            self.find_hp()
+        self.move(deltaTime)
 
     ######### transitions
     def low_hp_some_ammo_railgun(self) -> bool:
@@ -163,14 +203,35 @@ class Player:
     def prepare_strafe(self) -> None:
         self.setTarget(self.random_cell_nearby())
 
+    def prepare_running(self) -> None:
+        self.setTarget(self.random_cell_nearby())
+        self.velocity *= self.running_multiplier
+
+    
+    def stop_running(self) -> None:
+        self.velocity /= self.running_multiplier
+
+    def any_ammo_on_map(self) -> bool:
+        for supply in globals.supplies:
+            if supply.is_primary_ammo or supply.is_secondary_ammo:
+                return True
+        return False
+    
+    def any_hp_on_map(self) -> bool:
+        for supply in globals.supplies:
+            if supply.is_health:
+                return True
+        return False
+
     def init_states(self) -> None:
-        self.stateMachine.add_state("LookingForEnemy", None, self.looking_for_enemy)
-        self.stateMachine.add_state("SetupShooting", self.setup_shooting, None)
-        self.stateMachine.add_state("StrafeRocket", self.prepare_strafe, self.strafe_rocket)
-        self.stateMachine.add_state("StrafeRailgun", self.prepare_strafe, self.strafe_railgun)
-        self.stateMachine.add_state("RunForHPShooting", self.find_hp, self.run_for_hp_shoot)
-        self.stateMachine.add_state("RunForAmmo", self.find_ammo, self.go_for_ammo)
-        self.stateMachine.add_state("RunForHP", self.find_hp, self.go_for_hp)
+        self.stateMachine.add_state("LookingForEnemy", None, None, self.looking_for_enemy)
+        self.stateMachine.add_state("SetupShooting", self.setup_shooting, None,  None)
+        self.stateMachine.add_state("StrafeRocket", self.prepare_strafe,  None, self.strafe_rocket)
+        self.stateMachine.add_state("StrafeRailgun", self.prepare_strafe,  None, self.strafe_railgun)
+        self.stateMachine.add_state("RunForHPShooting", self.find_hp,  None, self.run_for_hp_shoot)
+        self.stateMachine.add_state("RunForAmmo", self.find_ammo,  None, self.go_for_ammo)
+        self.stateMachine.add_state("RunForHP", self.find_hp,  None, self.go_for_hp)
+        self.stateMachine.add_state("RunInPanic", self.prepare_running, self.stop_running, self.run_in_panic)
         self.stateMachine.add_transition(self.is_any_player_in_fov, "LookingForEnemy", "SetupShooting")
         self.stateMachine.add_transition(self.low_hp_some_ammo_railgun, "StrafeRailgun", "RunForHPShooting")
         self.stateMachine.add_transition(self.low_hp_some_ammo_rocket, "StrafeRailgun", "RunForHPShooting")
@@ -190,6 +251,8 @@ class Player:
         self.stateMachine.add_transition(self.both_ammo_enough, "RunForAmmo", "LookingForEnemy")
         self.stateMachine.add_transition(self.ammo_low_high_hp, "RunForHP", "RunForAmmo")
         self.stateMachine.add_transition(self.hp_low_high_ammo, "RunForAmmo", "RunForHP")
+        self.stateMachine.add_transition(self.any_hp_on_map, "RunInPanic", "RunForHP")
+        self.stateMachine.add_transition(self.any_ammo_on_map, "RunInPanic", "RunForAmmo")
         self.stateMachine.change_current_state("LookingForEnemy")
 
 
