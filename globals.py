@@ -6,7 +6,7 @@ from Projectile import Projectile
 supplies: List[Supply] = []
 projectiles: List[Projectile] = []
 max_fov = 90
-max_player = 3
+max_player = 4
 players: List[Player] = []
 WIDTH = 806
 OBSTACLE_COLOR = (0, 0, 255)

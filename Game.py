@@ -8,6 +8,7 @@ from Supply import Supply
 
 
 class Game:
+    i=4
     def __init__(self) -> None:
         self.WIDTH = globals.WIDTH
         self.HEIGHT = self.WIDTH
@@ -15,7 +16,8 @@ class Game:
         self.map:Map.Map = Map.Map(self.WORLD)
         globals.players.append(Player.Player(self.map, [1, 1], globals.BLUE, 1,10,1))
         globals.players.append(Player.Player(self.map, [21, 21], globals.GREEN,18,16,2))
-        globals.players.append(Player.Player(self.map, [22, 24], globals.PURPLE,1,21,3))
+        globals.players.append(Player.Player(self.map, [1, 23], globals.PURPLE,1,21,3))
+        globals.players.append(Player.Player(self.map, [24, 1], globals.BROWN,1,21,3))
         self.running:bool = True
         self.CLOCK = pygame.time.Clock()
         self.BACKGROUND = globals.WHITE
@@ -56,7 +58,17 @@ class Game:
 
     def _respawnPlayerIfNeeded(self):
         if len(globals.players) < globals.max_player:
-            globals.players.append(Player.Player(self.map, [21, 21], (125, 0, 125), 18, 16))
+            self.i +=1
+            random_spot = random.choice(self.map.empty_cells)
+            colors = []
+            for player in globals.players:
+                colors.append(player.color)
+            colors_to_choose = []
+            for element in globals.PLAYER_COLORS:
+                if element not in colors:
+                    colors_to_choose.append(element)
+
+            globals.players.append(Player.Player(self.map, random_spot, random.choice(colors_to_choose), 18, 16,self.i))
 
 
     def _draw(self) -> None:

@@ -147,13 +147,11 @@ class Player:
         if self.goal_reached:
             self.find_ammo()
         self.move(deltaTime)
-        self.collect_supply()
 
     def go_for_hp(self, deltaTime) -> None:
         if self.goal_reached:
             self.find_hp()
         self.move(deltaTime)
-        self.collect_supply()
 
     ######### transitions
     def low_hp_some_ammo_railgun(self) -> bool:
@@ -302,10 +300,8 @@ class Player:
         return self.health >= self.hp_enough
 
     def update(self, deltaTime) -> None:
-        #self.is_any_player_in_fov()
         self.check_if_hit()
-        #self.collect_supply()
-        #self.move(deltaTime)
+        self.collect_supply()
         self.stateMachine.check_state_change()
         self.stateMachine.behave(deltaTime)
 
@@ -379,11 +375,11 @@ class Player:
         for projectile in globals.projectiles:
             if self.Position_in_game.distance_to(projectile.position) <= self.radius + projectile.radius and projectile.shooter != self:
                 if projectile.is_primary_shoot:
-                    self.health -= 5
+                    self.health -= projectile.deal_damage()
+                    globals.projectiles.remove(projectile)
                 else:
                     projectile.make_explosion()
-                    self.health -= 30
-                globals.projectiles.remove(projectile)
+                    self.health -= projectile.deal_damage()
         if self.health <= 0:
             globals.players.remove(self)
 
